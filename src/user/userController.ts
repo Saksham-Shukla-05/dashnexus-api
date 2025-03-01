@@ -2,6 +2,7 @@ import { NextFunction, Response, Request } from "express";
 import createHttpError from "http-errors";
 import { body, validationResult } from "express-validator";
 import userModel from "./userModel";
+import bcrypt, { genSalt } from "bcryptjs";
 
 // Validation
 const validateUser = [
@@ -14,7 +15,7 @@ const validateUser = [
 
 const createUser = async (req: Request, res: Response, next: NextFunction) => {
   const errors = validationResult(req);
-
+  const { passowrd } = req.body;
   if (!errors.isEmpty()) {
     return next(
       createHttpError(400, {
@@ -33,6 +34,10 @@ const createUser = async (req: Request, res: Response, next: NextFunction) => {
     );
     return next(error);
   }
+
+  // process (adding user in the db , hashing passowrd)
+
+  const hashedPassword = await bcrypt.hash(passowrd, 10);
 
   res.json({
     message: "User Created",
