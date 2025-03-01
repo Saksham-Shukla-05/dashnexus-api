@@ -5,6 +5,7 @@ import userModel from "./userModel";
 import bcrypt from "bcryptjs";
 import { sign } from "jsonwebtoken";
 import { config } from "../config/config";
+import { User } from "./userTypes";
 
 // Validation
 const validateUser = [
@@ -28,34 +29,52 @@ const createUser = async (req: Request, res: Response, next: NextFunction) => {
   }
 
   // Database call.
-  const user = await userModel.findOne({ email: req.body.email });
 
-  if (user) {
-    const error = createHttpError(
-      400,
-      "User Already exisit with the provided email "
+  try {
+    const user = await userModel.findOne({ email: req.body.email });
+
+    if (user) {
+      const error = createHttpError(
+        400,
+        "User Already exisit with the provided email "
+      );
+      return next(error);
+    }
+  } catch (error) {
+    return next(
+      createHttpError(500, { message: "Error while Regstring user" })
     );
-    return next(error);
   }
 
   // process (adding user in the db , hashing passowrd)
 
-  const hashedPassword = await bcrypt.hash(password, 10);
-  const newUser = await userModel.create({
-    name: req.body.name,
-    email: req.body.email,
-    password: hashedPassword,
-  });
+  let newUser: User;
+  try {
+    const hashedPassword = await bcrypt.hash(password, 10);
+    newUser = await userModel.create({
+      name: req.body.name,
+      email: req.body.email,
+      password: hashedPassword,
+    });
+  } catch (error) {
+    return next(createHttpError(500, { message: "Error while hasing user" }));
+  }
 
   // Token Generation
 
-  const token = sign({ sub: newUser._id }, config.jwtSecret as string, {
-    expiresIn: "7d",
-  });
+  try {
+    const token = sign({ sub: newUser._id }, config.jwtSecret as string, {
+      expiresIn: "7d",
+    });
 
-  res.json({
-    accessToken: token,
-  });
+    res.json({
+      accessToken: token,
+    });
+  } catch (error) {
+    return next(
+      createHttpError(500, { message: "Error while signing the jwt token" })
+    );
+  }
 };
 
 export { createUser, validateUser };
