@@ -2,7 +2,9 @@ import { NextFunction, Response, Request } from "express";
 import createHttpError from "http-errors";
 import { body, validationResult } from "express-validator";
 import userModel from "./userModel";
-import bcrypt, { genSalt } from "bcryptjs";
+import bcrypt from "bcryptjs";
+import { sign } from "jsonwebtoken";
+import { config } from "../config/config";
 
 // Validation
 const validateUser = [
@@ -15,7 +17,8 @@ const validateUser = [
 
 const createUser = async (req: Request, res: Response, next: NextFunction) => {
   const errors = validationResult(req);
-  const { passowrd } = req.body;
+  const { password } = req.body;
+
   if (!errors.isEmpty()) {
     return next(
       createHttpError(400, {
@@ -37,10 +40,21 @@ const createUser = async (req: Request, res: Response, next: NextFunction) => {
 
   // process (adding user in the db , hashing passowrd)
 
-  const hashedPassword = await bcrypt.hash(passowrd, 10);
+  const hashedPassword = await bcrypt.hash(password, 10);
+  const newUser = await userModel.create({
+    name: req.body.name,
+    email: req.body.email,
+    password: hashedPassword,
+  });
+
+  // Token Generation
+
+  const token = sign({ sub: newUser._id }, config.jwtSecret as string, {
+    expiresIn: "7d",
+  });
 
   res.json({
-    message: "User Created",
+    accessToken: token,
   });
 };
 
