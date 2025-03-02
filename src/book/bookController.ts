@@ -141,4 +141,14 @@ const updateBook = async (req: Request, res: Response, next: NextFunction) => {
   }
 };
 
-export { createBook, updateBook };
+const getBook = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    // use paggination here
+    const book = await bookModel.find();
+    res.json(book);
+  } catch (error) {
+    return next(createHttpError(500, "An error occured while getting book"));
+  }
+};
+
+export { createBook, updateBook, getBook };
