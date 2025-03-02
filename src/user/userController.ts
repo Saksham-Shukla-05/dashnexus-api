@@ -41,9 +41,7 @@ const createUser = async (req: Request, res: Response, next: NextFunction) => {
       return next(error);
     }
   } catch (error) {
-    return next(
-      createHttpError(500, { message: "Error while Regstring user" })
-    );
+    return next(createHttpError(500, "Error while Regstring user"));
   }
 
   // process (adding user in the db , hashing passowrd)
@@ -57,7 +55,7 @@ const createUser = async (req: Request, res: Response, next: NextFunction) => {
       password: hashedPassword,
     });
   } catch (error) {
-    return next(createHttpError(500, { message: "Error while hasing user" }));
+    return next(createHttpError(500, "Error while hasing user"));
   }
 
   // Token Generation
@@ -71,9 +69,7 @@ const createUser = async (req: Request, res: Response, next: NextFunction) => {
       accessToken: token,
     });
   } catch (error) {
-    return next(
-      createHttpError(500, { message: "Error while signing the jwt token" })
-    );
+    return next(createHttpError(500, "Error while signing the jwt token"));
   }
 };
 
@@ -100,9 +96,9 @@ const loginUser = async (req: Request, res: Response, next: NextFunction) => {
       expiresIn: "7d",
     });
 
-    res.json({ accessToken: token });
+    res.json({ accessToken: token, user });
   } catch (error) {
-    return next(createHttpError(500, { message: "Error while getting user" }));
+    return next(createHttpError(500, "Error while getting user"));
   }
 };
 
