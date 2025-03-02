@@ -170,4 +170,43 @@ const getSingleBook = async (
   }
 };
 
-export { createBook, updateBook, getBook, getSingleBook };
+const deleteBook = async (req: Request, res: Response, next: NextFunction) => {
+  const bookId = req.params.bookId;
+
+  try {
+    const book = await bookModel.findOne({ _id: bookId });
+
+    if (!book) {
+      return next(createHttpError(500, "Book does not exist "));
+    }
+
+    //check access
+    const _req = req as AuthRequest;
+    if (book.author.toString() != _req.userId) {
+      return next(createHttpError(403, "Unauthorized"));
+    }
+
+    const coverFileSplits = book.coverImage.split("/");
+    const coverImagePublicId =
+      coverFileSplits.at(-2) + "/" + coverFileSplits.at(-1)?.split(".").at(-2);
+
+    const bookFileSplits = book.file.split("/");
+    const bookFilePublicId =
+      bookFileSplits.at(-2) + "/" + bookFileSplits.at(-1);
+
+    console.log(bookFilePublicId);
+
+    await cloudinary.uploader.destroy(coverImagePublicId);
+
+    await cloudinary.uploader.destroy(bookFilePublicId, {
+      resource_type: "raw",
+    });
+
+    await bookModel.deleteOne({ _id: bookId });
+
+    res.status(204).json({ Book: book.title, BookAuthor: book.author });
+  } catch (error) {
+    return next(createHttpError(500, "An error occured while deleting book"));
+  }
+};
+export { createBook, updateBook, getBook, getSingleBook, deleteBook };
