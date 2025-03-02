@@ -39,6 +39,9 @@ const createBook = async (req: Request, res: Response, next: NextFunction) => {
       }
     );
 
+    //@ts-ignore
+    console.log("user id ", req.userId);
+
     const newBook = await bookModel.create({
       title,
       genre,
