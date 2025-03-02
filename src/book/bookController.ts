@@ -3,7 +3,7 @@ import cloudinary from "../config/cloudinary";
 import path from "path";
 import createHttpError from "http-errors";
 import bookModel from "./bookModel";
-
+import { AuthRequest } from "../MiddleWares/authenticate";
 import fs from "fs";
 const createBook = async (req: Request, res: Response, next: NextFunction) => {
   const files = req.files as { [filename: string]: Express.Multer.File[] };
@@ -39,13 +39,11 @@ const createBook = async (req: Request, res: Response, next: NextFunction) => {
       }
     );
 
-    //@ts-ignore
-    console.log("user id ", req.userId);
-
+    const _req = req as AuthRequest;
     const newBook = await bookModel.create({
       title,
       genre,
-      author: "67c2dc0150813bbce9a7ccc5",
+      author: _req.userId,
       coverImage: uploadResult.secure_url,
       file: bookFileUploadResult.secure_url,
     });
