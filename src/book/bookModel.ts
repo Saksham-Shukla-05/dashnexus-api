@@ -12,6 +12,10 @@ const booksSchema = new mongoose.Schema<Book>(
       ref: "User",
       required: true,
     },
+    description: {
+      type: String,
+      require: true,
+    },
     coverImage: {
       type: String,
       required: true,

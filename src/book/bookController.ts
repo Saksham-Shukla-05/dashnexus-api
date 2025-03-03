@@ -7,7 +7,7 @@ import { AuthRequest } from "../MiddleWares/authenticate";
 import fs from "fs";
 const createBook = async (req: Request, res: Response, next: NextFunction) => {
   const files = req.files as { [filename: string]: Express.Multer.File[] };
-  const { title, genre } = req.body;
+  const { title, genre, description } = req.body;
   const coverImageMimeType = files.coverImage[0].mimetype.split("/").at(-1);
   const fileName = files.coverImage[0].filename;
   const filePath = path.resolve(
@@ -43,6 +43,7 @@ const createBook = async (req: Request, res: Response, next: NextFunction) => {
     const newBook = await bookModel.create({
       title,
       genre,
+      description,
       author: _req.userId,
       coverImage: uploadResult.secure_url,
       file: bookFileUploadResult.secure_url,
@@ -55,6 +56,7 @@ const createBook = async (req: Request, res: Response, next: NextFunction) => {
 
     res.status(201).json({
       id: newBook._id,
+      message: "Book Created Successfully",
     });
   } catch (error) {
     return next(
@@ -64,7 +66,7 @@ const createBook = async (req: Request, res: Response, next: NextFunction) => {
 };
 
 const updateBook = async (req: Request, res: Response, next: NextFunction) => {
-  const { title, genre } = req.body;
+  const { title, genre, description } = req.body;
   const bookId = req.params.bookId;
 
   try {
@@ -127,7 +129,7 @@ const updateBook = async (req: Request, res: Response, next: NextFunction) => {
       },
       {
         title: title,
-        // description: description,
+        description: description,
         genre: genre,
         coverImage: completeCoverImage ? completeCoverImage : book.coverImage,
         file: completeFileName ? completeFileName : book.file,
@@ -135,7 +137,10 @@ const updateBook = async (req: Request, res: Response, next: NextFunction) => {
       { new: true }
     );
 
-    res.json(updatedBook);
+    res.json({
+      updatedBook: updatedBook,
+      message: `${title} has been updated successfully`,
+    });
   } catch (error) {
     return next(createHttpError(500, "An error occured while updating book "));
   }
@@ -208,7 +213,7 @@ const deleteBook = async (req: Request, res: Response, next: NextFunction) => {
 
     await bookModel.deleteOne({ _id: bookId });
 
-    res.status(204).json({ Book: book.title, BookAuthor: book.author });
+    res.json({ Book: book.title, BookAuthor: book.author });
   } catch (error) {
     return next(createHttpError(500, "An error occured while deleting book"));
   }
