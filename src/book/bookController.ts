@@ -144,7 +144,9 @@ const updateBook = async (req: Request, res: Response, next: NextFunction) => {
 const getBook = async (req: Request, res: Response, next: NextFunction) => {
   try {
     // use paggination here
-    const book = await bookModel.find();
+    const book = await bookModel.find().populate("author", "-password");
+    console.log(book);
+
     res.json(book);
   } catch (error) {
     return next(createHttpError(500, "An error occured while getting book"));
@@ -163,6 +165,8 @@ const getSingleBook = async (
     if (!book) {
       return next(createHttpError(500, "Book does not exist "));
     }
+
+    console.log("Books", book);
 
     res.json(book);
   } catch (error) {
