@@ -149,7 +149,10 @@ const updateBook = async (req: Request, res: Response, next: NextFunction) => {
 const getBook = async (req: Request, res: Response, next: NextFunction) => {
   try {
     // use paggination here
-    const book = await bookModel.find().populate("author", "-password");
+    const book = await bookModel
+      .find()
+      .populate("author", "-password")
+      .limit(5);
     console.log(book);
 
     res.json(book);
