@@ -36,7 +36,7 @@ bookRouter.patch(
   updateBook
 );
 
-bookRouter.get("/", getBook);
+bookRouter.get("/", authenticate, getBook);
 
 bookRouter.get("/:bookId", getSingleBook);
 

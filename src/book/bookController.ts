@@ -147,17 +147,27 @@ const updateBook = async (req: Request, res: Response, next: NextFunction) => {
 };
 
 const getBook = async (req: Request, res: Response, next: NextFunction) => {
+  const page = parseInt(req.query.page as string) || 1;
+  const limit = parseInt(req.query.limit as string) || 5;
+  const skip = (page - 1) * limit;
+
   try {
-    // use paggination here
     const book = await bookModel
       .find()
       .populate("author", "-password")
-      .limit(5);
-    console.log(book);
+      .skip(skip)
+      .limit(limit);
 
-    res.json(book);
+    const totalBooks = await bookModel.countDocuments();
+
+    res.json({
+      book,
+      totalBooks,
+      totalPages: Math.ceil(totalBooks / limit),
+      currentPage: page,
+    });
   } catch (error) {
-    return next(createHttpError(500, "An error occured while getting book"));
+    return next(createHttpError(500, "An error occurred while getting books"));
   }
 };
 
